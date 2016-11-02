@@ -207,6 +207,7 @@
     <Compile Include="CodeGen\GeneratorExtensions.cs" />
     <Compile Include="CodeGen\Rewriter.cs" />
     <Compile Include="ConvertedProjectItem.cs" />
+    <Compile Include="VBProjProjectWriter.cs" />
     <Compile Include="CSProjProjectWriter.cs" />
     <Compile Include="IProjectWriter.cs" />
     <Compile Include="IVB6FormObject.cs" />

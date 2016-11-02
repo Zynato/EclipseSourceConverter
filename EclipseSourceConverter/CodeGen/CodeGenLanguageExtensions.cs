@@ -23,6 +23,8 @@ namespace EclipseSourceConverter.CodeGen
             switch (language) {
                 case CodeGenLanguage.CSharp:
                     return new CSProjProjectWriter();
+                case CodeGenLanguage.VB:
+                    return new VBProjProjectWriter();
                 default:
                     throw new NotSupportedException();
             }
