@@ -201,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\CodeGenLanguageExtensions.cs" />
+    <Compile Include="CodeGen\FormDesignerGenerator.cs" />
     <Compile Include="CodeGen\MethodContext.cs" />
     <Compile Include="CodeGen\CodeGenLanguage.cs" />
     <Compile Include="CodeGen\CompilationUnit.cs" />

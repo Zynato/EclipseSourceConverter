@@ -25,6 +25,11 @@ namespace EclipseSourceConverter
                     }
                 } else if (item.Type == ProjectItemType.Form) {
                     var form = VB6FormLoader.LoadForm(item.SourceFile);
+
+                    var designerCompilationUnit = BuildCompilationUnit(language);
+                    var formDesignerGenerator = new FormDesignerGenerator(designerCompilationUnit);
+
+                    var code = formDesignerGenerator.Generate(form);
                 }
             }
 
@@ -38,10 +43,7 @@ namespace EclipseSourceConverter
                 return false;
             }
 
-            var workspace = new AdhocWorkspace();
-            var generator = GetGenerator(workspace, language);
-
-            var compilationUnit = new CompilationUnit(generator);
+            var compilationUnit = BuildCompilationUnit(language);
 
             var istream = new FileStream(inputPath, FileMode.Open);
 
@@ -61,6 +63,13 @@ namespace EclipseSourceConverter
             File.WriteAllText(outputPath, result);
 
             return true;
+        }
+
+        private CompilationUnit BuildCompilationUnit(CodeGenLanguage language) {
+            var workspace = new AdhocWorkspace();
+            var generator = GetGenerator(workspace, language);
+
+            return new CompilationUnit(generator);
         }
 
         private SyntaxGenerator GetGenerator(Workspace workspace, CodeGenLanguage language) {
