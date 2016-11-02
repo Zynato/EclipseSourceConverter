@@ -200,11 +200,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGen\CodeGenLanguageExtensions.cs" />
     <Compile Include="CodeGen\MethodContext.cs" />
     <Compile Include="CodeGen\CodeGenLanguage.cs" />
     <Compile Include="CodeGen\CompilationUnit.cs" />
     <Compile Include="CodeGen\GeneratorExtensions.cs" />
     <Compile Include="CodeGen\Rewriter.cs" />
+    <Compile Include="ConvertedProjectItem.cs" />
+    <Compile Include="CSProjProjectWriter.cs" />
+    <Compile Include="IProjectWriter.cs" />
     <Compile Include="IVB6FormObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Project.cs" />

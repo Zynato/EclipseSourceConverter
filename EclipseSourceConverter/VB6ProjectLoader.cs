@@ -14,6 +14,8 @@ namespace EclipseSourceConverter
 
             var basePath = Path.GetDirectoryName(projectFile);
 
+            project.ProjectDirectory = basePath;
+
             using (var inputStream = new FileStream(projectFile, FileMode.Open)) {
                 using (var streamReader = new StreamReader(inputStream)) {
                     while (!streamReader.EndOfStream) {
@@ -46,6 +48,7 @@ namespace EclipseSourceConverter
                                 break;
                             case "Title": {
                                     project.Title = kvp[1].Trim('\"');
+                                    project.ProjectNamespace = project.Title.Replace(" ", "");
                                 }
                                 break;
                             case "ExeName32": {

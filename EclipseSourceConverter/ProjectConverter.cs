@@ -15,17 +15,25 @@ namespace EclipseSourceConverter
     class ProjectConverter
     {
         public void ConvertProject(Project project, CodeGenLanguage language) {
+            string targetDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "ESC");
+
+            var convertedItems = new List<string>();
             foreach (var item in project.Items) {
                 if (item.Type == ProjectItemType.Module) {
-                    ConvertCodeFile(item.SourceFile, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "ESC", item.Name + ".cs"), item.Name, language);
+                    if (ConvertCodeFile(item.SourceFile, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
+                        project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
+                    }
                 }
             }
+
+            var projectWriter = language.GetProjectWriter();
+            projectWriter.WriteProjectFile(targetDirectory, project);
         }
 
-        private void ConvertCodeFile(string inputPath, string outputPath, string name, CodeGenLanguage language) {
+        private bool ConvertCodeFile(string inputPath, string outputPath, string name, CodeGenLanguage language) {
             // TODO: [HACK] [TODO] Currently only known supported files are allowed
             if (name != "modGlobals" && name != "modConstants" && name != "modGeneral" /*&& name != "modDatabase" && name != "modGameEditors"*/) {
-                return;
+                return false;
             }
 
             var workspace = new AdhocWorkspace();
@@ -49,6 +57,8 @@ namespace EclipseSourceConverter
             var result = compilationUnit.Generate(name);
 
             File.WriteAllText(outputPath, result);
+
+            return true;
         }
 
         private SyntaxGenerator GetGenerator(Workspace workspace, CodeGenLanguage language) {
