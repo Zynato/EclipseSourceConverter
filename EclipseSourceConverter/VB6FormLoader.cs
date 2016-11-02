@@ -27,7 +27,12 @@ namespace EclipseSourceConverter
         }
 
         private static IVB6FormObject LoadFormObject(StreamReader streamReader) {
-            var header = streamReader.ReadLine().Trim().Split(' ');
+            var line = streamReader.ReadLine();
+            while (!line.StartsWith("Begin ")) {
+                line = streamReader.ReadLine();
+            }
+
+            var header = line.Trim().Split(' ');
 
             if (header[0] != "Begin") {
                 throw new InvalidOperationException("Invalid header!");
