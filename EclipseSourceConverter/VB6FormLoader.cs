@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EclipseSourceConverter
 {
-    class VB6FormLoader
+    static class VB6FormLoader
     {
         public static VB6Form LoadForm(string formPath) {
             VB6Form form;

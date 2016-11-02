@@ -23,6 +23,8 @@ namespace EclipseSourceConverter
                     if (ConvertCodeFile(item.SourceFile, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
                         project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
                     }
+                } else if (item.Type == ProjectItemType.Form) {
+                    var form = VB6FormLoader.LoadForm(item.SourceFile);
                 }
             }
 
