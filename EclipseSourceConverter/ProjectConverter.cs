@@ -94,6 +94,7 @@ namespace EclipseSourceConverter
 
             mappings.RegisterGeneralMapping("Caption", new PropertyMapping(value => new PropertyMappingResult[] { new PropertyMappingResult("Text", compilationUnit.Generator.GenerateNodeForLiteral(value)) }));
             mappings.RegisterGeneralMapping("Name", new PropertyMapping(value => new PropertyMappingResult[] { new PropertyMappingResult("Name", compilationUnit.Generator.GenerateNodeForLiteral(value)) }));
+            mappings.RegisterGeneralMapping("TabIndex", new PropertyMapping(value => new PropertyMappingResult[] { new PropertyMappingResult("TabIndex", compilationUnit.Generator.GenerateNodeForLiteral(value)) }));
 
             return mappings;
         }
