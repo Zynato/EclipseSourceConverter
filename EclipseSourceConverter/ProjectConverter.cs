@@ -20,8 +20,10 @@ namespace EclipseSourceConverter
             var convertedItems = new List<string>();
             foreach (var item in project.Items) {
                 if (item.Type == ProjectItemType.Module) {
-                    if (ConvertCodeFile(item.SourceFile, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
-                        project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
+                    using (var inputStream = new FileStream(item.SourceFile, FileMode.Open)) {
+                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
+                            project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
+                        }
                     }
                 } else if (item.Type == ProjectItemType.Form) {
                     var form = VB6FormLoader.LoadForm(item.SourceFile);
@@ -36,6 +38,13 @@ namespace EclipseSourceConverter
                     var designerPath = Path.Combine(targetDirectory, $"{form.Name}.Designer{language.GetLanguageExtension()}");
                     project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer{language.GetLanguageExtension()}"));
                     File.WriteAllText(designerPath, code);
+
+                    // Generate code-behind
+                    using (var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(form.CodeBehind))) {
+                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
+                            project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
+                        }
+                    }
                 }
             }
 
@@ -43,17 +52,15 @@ namespace EclipseSourceConverter
             projectWriter.WriteProjectFile(targetDirectory, project);
         }
 
-        private bool ConvertCodeFile(string inputPath, string outputPath, string name, CodeGenLanguage language) {
+        private bool ConvertCodeFile(Stream inputStream, string outputPath, string name, CodeGenLanguage language) {
             // TODO: [HACK] [TODO] Currently only known supported files are allowed
-            if (name != "modGlobals" && name != "modConstants" && name != "modGeneral" /*&& name != "modDatabase" && name != "modGameEditors"*/) {
+            if (name != "modGlobals" && name != "modConstants" && name != "modGeneral" /*&& name != "modDatabase" && name != "modGameEditors"*/ && !name.StartsWith("frm")) {
                 return false;
             }
 
             var compilationUnit = BuildCompilationUnit(language);
 
-            var istream = new FileStream(inputPath, FileMode.Open);
-
-            var input = new AntlrInputStream(istream);
+            var input = new AntlrInputStream(inputStream);
             var lexer = new VisualBasic6Lexer(input);
             var tokens = new CommonTokenStream(lexer);
             var parser = new VisualBasic6Parser(tokens);
