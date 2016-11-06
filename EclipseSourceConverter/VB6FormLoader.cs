@@ -42,7 +42,21 @@ namespace EclipseSourceConverter
 
             ReadProperties(streamReader, formObject, formObject.Properties);
 
+            RewriteIndexedControls(formObject);
+
             return formObject;
+        }
+
+        private static void RewriteIndexedControls(IVB6FormObject formObject) {
+            for (int i = 0; i < formObject.Children.Count; i++) {
+                var child = formObject.Children[i];
+                int? index = child.Properties.Where(property => property.Name == "Index").Select(property => Convert.ToInt32(property.Value)).Cast<int?>().FirstOrDefault();
+                if (index.HasValue) {
+                    child.Name = $"{child.Name}_{index.Value}";
+                }
+
+                RewriteIndexedControls(child);
+            }
         }
 
         private static IVB6FormObject GenerateFormObject(string[] headerArgs) {
