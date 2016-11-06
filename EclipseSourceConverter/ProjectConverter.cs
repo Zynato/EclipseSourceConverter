@@ -53,11 +53,6 @@ namespace EclipseSourceConverter
         }
 
         private bool ConvertCodeFile(Stream inputStream, string outputPath, string name, CodeGenLanguage language) {
-            // TODO: [HACK] [TODO] Currently only known supported files are allowed
-            if (name != "modGlobals" && name != "modConstants" && name != "modGeneral" /*&& name != "modDatabase" && name != "modGameEditors"*/ && !name.StartsWith("frm")) {
-                return false;
-            }
-
             var compilationUnit = BuildCompilationUnit(language);
 
             var input = new AntlrInputStream(inputStream);

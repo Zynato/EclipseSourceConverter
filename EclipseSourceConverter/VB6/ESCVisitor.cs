@@ -197,9 +197,13 @@ namespace EclipseSourceConverter.VB6
                 Name = name
             };
 
-            compilationUnit.BlockCount++;
-
             var blockContext = context.GetChild<VisualBasic6Parser.BlockContext>(0);
+            if (blockContext == null) {
+                // This is an empty method, skip it
+                yield break;
+            }
+
+            compilationUnit.BlockCount++;
 
             var statements = EnumerateChildElements(blockContext);
 
@@ -298,16 +302,36 @@ namespace EclipseSourceConverter.VB6
                     case ITerminalNode childCtx: {
                             switch (childCtx.Symbol.Text) {
                                 case "=": {
+                                        if (childQueue.Count == 0) {
+                                            return currentNode;
+                                        }
+
                                         var rightChild = childQueue.Dequeue();
                                         var right = WalkBaseValueStatementNode(rightChild);
+
+                                        if (right == null) {
+                                            // TODO: Handle the case where right == null
+                                            Debug.WriteLine("Invalid \"right\" node");
+                                            right = compilationUnit.Generator.NullLiteralExpression();
+                                        }
 
                                         currentNode = compilationUnit.Generator.ValueEqualsExpression(currentNode, right);
                                     }
                                     break;
                                 case "+":
                                 case "&": {
+                                        if (childQueue.Count == 0) {
+                                            return currentNode;
+                                        }
+
                                         var rightChild = childQueue.Dequeue();
                                         var right = WalkBaseValueStatementNode(rightChild);
+
+                                        if (right == null) {
+                                            // TODO: Handle the case where right == null
+                                            Debug.WriteLine("Invalid \"right\" node");
+                                            right = compilationUnit.Generator.NullLiteralExpression();
+                                        }
 
                                         currentNode = compilationUnit.Generator.AddExpression(currentNode, right);
                                     }
@@ -541,7 +565,12 @@ namespace EclipseSourceConverter.VB6
             var ifConditionNode = WalkValueStmt(valueStmt);
 
             var blockStmt = ifBlockStmt.GetChild<VisualBasic6Parser.BlockContext>(0);
-            var blockStmtNodes = VisitBlock(blockStmt);
+            IEnumerable<SyntaxNode> blockStmtNodes;
+            if (blockStmt == null) {
+                blockStmtNodes = Enumerable.Empty<SyntaxNode>();
+            }else {
+                blockStmtNodes = VisitBlock(blockStmt);
+            }
 
             IEnumerable<SyntaxNode> elseBlockStmtNodes = null;
             var ifElseBlockStmt = context.GetChild<VisualBasic6Parser.IfElseBlockStmtContext>(0);

@@ -16,6 +16,10 @@ namespace EclipseSourceConverter.CodeGen
                 return generator.LiteralExpression(null);
             }
 
+            if (text.Equals("vbNullString")) {
+                return generator.LiteralExpression(null);
+            }
+
             if (Int32.TryParse(text, out int i)) {
                 return generator.LiteralExpression(i);
             }
@@ -73,6 +77,8 @@ namespace EclipseSourceConverter.CodeGen
                     return generator.TypeExpression(SpecialType.System_Single);
                 case "integer": // integer in VB6 = Int16 in .NET
                     return generator.TypeExpression(SpecialType.System_Int16);
+                case "double":
+                    return generator.TypeExpression(SpecialType.System_Double);
                 default:
                     throw new NotImplementedException();
             }
