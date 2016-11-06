@@ -44,6 +44,8 @@ namespace EclipseSourceConverter
 
             RewriteIndexedControls(formObject);
 
+            AddImplicitProperties(formObject);
+
             return formObject;
         }
 
@@ -56,6 +58,14 @@ namespace EclipseSourceConverter
                 }
 
                 RewriteIndexedControls(child);
+            }
+        }
+
+        private static void AddImplicitProperties(IVB6FormObject formObject) {
+            formObject.Properties.Add(new VB6FormControlProperty() { Name = "Name", Value = $"\"{formObject.Name}\"" });
+
+            foreach (var child in formObject.Children) {
+                AddImplicitProperties(child);
             }
         }
 
