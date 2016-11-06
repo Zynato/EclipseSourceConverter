@@ -103,6 +103,7 @@ namespace EclipseSourceConverter
             var mappings = new TypeMappingCollection();
 
             mappings.RegisterTypeMapping("Label", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.Label"), false));
+            mappings.RegisterTypeMapping("CommandButton", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.Button"), false));
             mappings.RegisterTypeMapping("Frame", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.GroupBox"), true));
 
             return mappings;
