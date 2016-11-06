@@ -33,8 +33,8 @@ namespace EclipseSourceConverter
 
                     var code = formDesignerGenerator.Generate(form);
 
-                    var designerPath = Path.Combine(targetDirectory, $"{form.Name}.Designer.{language.GetLanguageExtension()}");
-                    project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer.{language.GetLanguageExtension()}"));
+                    var designerPath = Path.Combine(targetDirectory, $"{form.Name}.Designer{language.GetLanguageExtension()}");
+                    project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer{language.GetLanguageExtension()}"));
                     File.WriteAllText(designerPath, code);
                 }
             }
