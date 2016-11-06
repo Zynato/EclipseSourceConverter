@@ -46,6 +46,15 @@ namespace EclipseSourceConverter.CodeGen
 
             compilationUnit.Members.Add(GenerateInitializeComponentMethod(form));
 
+            // Generate control field declarations
+            foreach (var child in WalkFormObjects(form.Children)) {
+                var targetType = typeMappings.GetMapping(child.Type);
+
+                if (targetType.Type != null) {
+                    compilationUnit.Members.Add(compilationUnit.Generator.FieldDeclaration(child.Name, targetType.Type, Accessibility.Private));
+                }
+            }
+
             return compilationUnit.Generate(form.Name);
         }
 
