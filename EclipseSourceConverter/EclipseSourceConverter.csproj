@@ -209,6 +209,11 @@
     <Compile Include="CodeGen\Rewriter.cs" />
     <Compile Include="ConvertedProjectItem.cs" />
     <Compile Include="FRXLoader.cs" />
+    <Compile Include="PropertyMapping.cs" />
+    <Compile Include="PropertyMappingCollection.cs" />
+    <Compile Include="PropertyMappingResult.cs" />
+    <Compile Include="TypeMapping.cs" />
+    <Compile Include="TypeMappingCollection.cs" />
     <Compile Include="VBProjProjectWriter.cs" />
     <Compile Include="CSProjProjectWriter.cs" />
     <Compile Include="IProjectWriter.cs" />

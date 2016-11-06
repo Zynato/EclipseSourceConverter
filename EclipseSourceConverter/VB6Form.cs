@@ -11,6 +11,7 @@ namespace EclipseSourceConverter
         public List<VB6FormControlProperty> Properties { get; }
         public List<IVB6FormObject> Children { get; }
         public string Name { get; set; }
+        public string Type => "Form";
         public string CodeBehind { get; set; }
 
         public VB6Form() {

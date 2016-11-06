@@ -27,9 +27,15 @@ namespace EclipseSourceConverter
                     var form = VB6FormLoader.LoadForm(item.SourceFile);
 
                     var designerCompilationUnit = BuildCompilationUnit(language);
-                    var formDesignerGenerator = new FormDesignerGenerator(designerCompilationUnit);
+                    var propertyMappings = BuildPropertyMappings(designerCompilationUnit);
+                    var typeMappings = BuildTypeMappings(designerCompilationUnit);
+                    var formDesignerGenerator = new FormDesignerGenerator(designerCompilationUnit, propertyMappings, typeMappings);
 
                     var code = formDesignerGenerator.Generate(form);
+
+                    var designerPath = Path.Combine(targetDirectory, $"{form.Name}.Designer.{language.GetLanguageExtension()}");
+                    project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer.{language.GetLanguageExtension()}"));
+                    File.WriteAllText(designerPath, code);
                 }
             }
 
@@ -81,6 +87,23 @@ namespace EclipseSourceConverter
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private PropertyMappingCollection BuildPropertyMappings(CompilationUnit compilationUnit) {
+            var mappings = new PropertyMappingCollection();
+
+            mappings.RegisterGeneralMapping("Caption", new PropertyMapping(value => new PropertyMappingResult[] { new PropertyMappingResult("Text", compilationUnit.Generator.GenerateNodeForLiteral(value)) }));
+
+            return mappings;
+        }
+
+        private TypeMappingCollection BuildTypeMappings(CompilationUnit compilationUnit) {
+            var mappings = new TypeMappingCollection();
+
+            mappings.RegisterTypeMapping("Label", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.Label"), false));
+            mappings.RegisterTypeMapping("Frame", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.GroupBox"), true));
+
+            return mappings;
         }
     }
 }

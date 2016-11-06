@@ -11,10 +11,12 @@ namespace EclipseSourceConverter
         public List<VB6FormControlProperty> Properties { get; }
         public List<IVB6FormObject> Children { get; }
         public string Name { get; set; }
+        public string Type { get; }
 
-        public VB6FormControl() {
+        public VB6FormControl(string type) {
             this.Properties = new List<VB6FormControlProperty>();
             this.Children = new List<IVB6FormObject>();
+            this.Type = type;
         }
     }
 }

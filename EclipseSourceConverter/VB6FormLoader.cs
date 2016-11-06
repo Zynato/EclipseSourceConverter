@@ -54,7 +54,7 @@ namespace EclipseSourceConverter
             if (objectType == "Form") {
                 formObject = new VB6Form();
             } else {
-                formObject = new VB6FormControl();
+                formObject = new VB6FormControl(objectType);
             }
 
             formObject.Name = objectName;
