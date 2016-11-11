@@ -47,6 +47,11 @@ namespace EclipseSourceConverter
                         codeBehindCompilationUnit.UsingDirectives.Add(codeBehindCompilationUnit.Generator.NamespaceImportDeclaration("System.Windows.Forms"));
                         codeBehindCompilationUnit.BaseType = codeBehindCompilationUnit.Generator.IdentifierName("Form");
 
+                        codeBehindCompilationUnit.Members.Add(codeBehindCompilationUnit.Generator.ConstructorDeclaration(accessibility: Accessibility.Public, statements: new SyntaxNode[]
+                        {
+                            codeBehindCompilationUnit.Generator.InvocationExpression(codeBehindCompilationUnit.Generator.MemberAccessExpression(codeBehindCompilationUnit.Generator.ThisExpression(), "InitializeComponent"))
+                        }));
+
                         if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, codeBehindCompilationUnit)) {
                             project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
                         }
