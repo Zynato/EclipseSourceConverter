@@ -55,6 +55,7 @@ namespace EclipseSourceConverter
                     streamWriter.WriteLine(@"    <Reference Include=""System.Data"" />");
                     streamWriter.WriteLine(@"    <Reference Include=""System.Net.Http"" />");
                     streamWriter.WriteLine(@"    <Reference Include=""System.Xml"" />");
+                    streamWriter.WriteLine(@"    <Reference Include=""System.Windows.Forms"" />");
                     streamWriter.WriteLine(@"  </ItemGroup>");
                     streamWriter.WriteLine(@"  <ItemGroup>");
                     streamWriter.WriteLine(@"    <Compile Include=""Program.cs"" />");
