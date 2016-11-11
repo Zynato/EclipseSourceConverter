@@ -30,6 +30,8 @@ namespace EclipseSourceConverter.CodeGen
 
         public Rewriter Rewriter { get; }
 
+        public SyntaxNode BaseType { get; set; }
+
         public CompilationUnit(SyntaxGenerator generator) {
             this.Generator = generator;
 
@@ -54,10 +56,10 @@ namespace EclipseSourceConverter.CodeGen
 
         public string Generate(string name) {
             var classDefinition = Generator.ClassDeclaration(
-                  $"Eclipse", typeParameters: null,
+                  name, typeParameters: null,
                   accessibility: Accessibility.Public,
                   modifiers: DeclarationModifiers.Partial,
-                  baseType: null,
+                  baseType: BaseType,
                   members: Members);
             ContentDeclarations.Add(classDefinition);
 

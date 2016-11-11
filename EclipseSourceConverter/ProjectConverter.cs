@@ -21,7 +21,9 @@ namespace EclipseSourceConverter
             foreach (var item in project.Items) {
                 if (item.Type == ProjectItemType.Module) {
                     using (var inputStream = new FileStream(item.SourceFile, FileMode.Open)) {
-                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
+                        var compilationUnit = BuildCompilationUnit(language);
+
+                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), "Eclipse", compilationUnit)) {
                             project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
                         }
                     }
@@ -41,7 +43,11 @@ namespace EclipseSourceConverter
 
                     // Generate code-behind
                     using (var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(form.CodeBehind))) {
-                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, language)) {
+                        var codeBehindCompilationUnit = BuildCompilationUnit(language);
+                        codeBehindCompilationUnit.UsingDirectives.Add(codeBehindCompilationUnit.Generator.NamespaceImportDeclaration("System.Windows.Forms"));
+                        codeBehindCompilationUnit.BaseType = codeBehindCompilationUnit.Generator.IdentifierName("Form");
+
+                        if (ConvertCodeFile(inputStream, Path.Combine(targetDirectory, item.Name + language.GetLanguageExtension()), item.Name, codeBehindCompilationUnit)) {
                             project.ConvertedItems.Add(new ConvertedProjectItem(item, item.Name + language.GetLanguageExtension()));
                         }
                     }
@@ -52,9 +58,7 @@ namespace EclipseSourceConverter
             projectWriter.WriteProjectFile(targetDirectory, project);
         }
 
-        private bool ConvertCodeFile(Stream inputStream, string outputPath, string name, CodeGenLanguage language) {
-            var compilationUnit = BuildCompilationUnit(language);
-
+        private bool ConvertCodeFile(Stream inputStream, string outputPath, string name, CompilationUnit compilationUnit) {
             var input = new AntlrInputStream(inputStream);
             var lexer = new VisualBasic6Lexer(input);
             var tokens = new CommonTokenStream(lexer);
