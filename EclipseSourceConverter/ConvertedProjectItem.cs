@@ -10,10 +10,12 @@ namespace EclipseSourceConverter
     {
         public ProjectItem Item { get; }
         public string DestinationPath { get; }
+        public string DependentUpon { get; }
 
-        public ConvertedProjectItem(ProjectItem item, string destinationPath) {
+        public ConvertedProjectItem(ProjectItem item, string destinationPath, string dependentUpon = null) {
             this.Item = item;
             this.DestinationPath = destinationPath;
+            this.DependentUpon = dependentUpon;
         }
     }
 }

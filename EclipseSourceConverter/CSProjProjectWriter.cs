@@ -56,12 +56,19 @@ namespace EclipseSourceConverter
                     streamWriter.WriteLine(@"    <Reference Include=""System.Net.Http"" />");
                     streamWriter.WriteLine(@"    <Reference Include=""System.Xml"" />");
                     streamWriter.WriteLine(@"    <Reference Include=""System.Windows.Forms"" />");
+                    streamWriter.WriteLine(@"    <Reference Include=""System.Drawing"" />");
                     streamWriter.WriteLine(@"  </ItemGroup>");
                     streamWriter.WriteLine(@"  <ItemGroup>");
                     streamWriter.WriteLine(@"    <Compile Include=""Program.cs"" />");
                     streamWriter.WriteLine(@"    <Compile Include=""Properties\AssemblyInfo.cs"" />");
                     foreach (var item in project.ConvertedItems) {
-                        streamWriter.WriteLine(@"    <Compile Include=""{0}"" />", item.DestinationPath);
+                        if (string.IsNullOrEmpty(item.DependentUpon)) {
+                            streamWriter.WriteLine(@"    <Compile Include=""{0}"" />", item.DestinationPath);
+                        } else {
+                            streamWriter.WriteLine(@"    <Compile Include=""{0}"">", item.DestinationPath);
+                            streamWriter.WriteLine(@"      <DependentUpon>{0}</DependentUpon>", item.DependentUpon);
+                            streamWriter.WriteLine(@"    </Compile>");
+                        }
                     }
                     streamWriter.WriteLine(@"  </ItemGroup>");
                     streamWriter.WriteLine(@"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />");

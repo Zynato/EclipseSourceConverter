@@ -110,19 +110,52 @@ namespace EclipseSourceConverter.CodeGen
         private IList<SyntaxNode> GenerateControlProperties(IVB6FormObject control) {
             var propertyNodes = new List<SyntaxNode>();
 
+            int? height = null;
+            int? width = null;
+            int? top = null;
+            int? left = null;
+
             foreach (var property in control.Properties) {
-                var mapping = mappings.GetMapping(control, property.Name);
-                if (mapping != null) {
-                    foreach (var mappingResult in mapping.Mapping(property.Value)) {
-                        if (mappingResult.Value != null) {
-                            if (control.Type == "Form") {
-                                propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), mappingResult.Property), mappingResult.Value));
-                            } else {
-                                propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), mappingResult.Property), mappingResult.Value));
+                if (property.Name == "Height") {
+                    height = Convert.ToInt32(property.Value);
+                } else if (property.Name == "Width") {
+                    width = Convert.ToInt32(property.Value);
+                } else if (property.Name == "Top") {
+                    top = Convert.ToInt32(property.Value);
+                } else if (property.Name == "Left") {
+                    left = Convert.ToInt32(property.Value);
+                } else {
+                    var mapping = mappings.GetMapping(control, property.Name);
+                    if (mapping != null) {
+                        foreach (var mappingResult in mapping.Mapping(property.Value)) {
+                            if (mappingResult.Value != null) {
+                                if (control.Type == "Form") {
+                                    propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), mappingResult.Property), mappingResult.Value));
+                                } else {
+                                    propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), mappingResult.Property), mappingResult.Value));
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            if (height.HasValue && width.HasValue) {
+                width = UnitConverter.ConvertTwipsToXPixels(width.Value);
+                height = UnitConverter.ConvertTwipsToYPixels(height.Value);
+
+                var result = compilationUnit.Generator.ObjectCreationExpression(compilationUnit.Generator.IdentifierName("System.Drawing.Size"), compilationUnit.Generator.LiteralExpression(width.Value), compilationUnit.Generator.LiteralExpression(height.Value));
+
+                propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), "Size"), result));
+            }
+
+            if (top.HasValue && left.HasValue) {
+                left = UnitConverter.ConvertTwipsToXPixels(left.Value);
+                top = UnitConverter.ConvertTwipsToYPixels(top.Value);
+
+                var result = compilationUnit.Generator.ObjectCreationExpression(compilationUnit.Generator.IdentifierName("System.Drawing.Point"), compilationUnit.Generator.LiteralExpression(left.Value), compilationUnit.Generator.LiteralExpression(top.Value));
+
+                propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), "Location"), result));
             }
 
             // Add children

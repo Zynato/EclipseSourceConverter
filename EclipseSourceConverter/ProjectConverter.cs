@@ -38,7 +38,7 @@ namespace EclipseSourceConverter
                     var code = formDesignerGenerator.Generate(form);
 
                     var designerPath = Path.Combine(targetDirectory, $"{form.Name}.Designer{language.GetLanguageExtension()}");
-                    project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer{language.GetLanguageExtension()}"));
+                    project.ConvertedItems.Add(new ConvertedProjectItem(item, $"{form.Name}.Designer{language.GetLanguageExtension()}", $"{form.Name}{language.GetLanguageExtension()}"));
                     File.WriteAllText(designerPath, code);
 
                     // Generate code-behind
@@ -116,6 +116,11 @@ namespace EclipseSourceConverter
             mappings.RegisterTypeMapping("Label", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.Label"), false));
             mappings.RegisterTypeMapping("CommandButton", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.Button"), false));
             mappings.RegisterTypeMapping("Frame", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.GroupBox"), true));
+            mappings.RegisterTypeMapping("ComboBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.ComboBox"), false));
+            mappings.RegisterTypeMapping("HScrollBar", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.HScrollBar"), false));
+            mappings.RegisterTypeMapping("TextBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.TextBox"), false));
+            mappings.RegisterTypeMapping("PictureBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.PictureBox"), false));
+            mappings.RegisterTypeMapping("ListBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.ListBox"), false));
 
             return mappings;
         }
