@@ -118,9 +118,12 @@ namespace EclipseSourceConverter
             mappings.RegisterTypeMapping("Frame", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.GroupBox"), true));
             mappings.RegisterTypeMapping("ComboBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.ComboBox"), false));
             mappings.RegisterTypeMapping("HScrollBar", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.HScrollBar"), false));
+            mappings.RegisterTypeMapping("VScrollBar", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.VScrollBar"), false));
             mappings.RegisterTypeMapping("TextBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.TextBox"), false));
             mappings.RegisterTypeMapping("PictureBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.PictureBox"), false));
             mappings.RegisterTypeMapping("ListBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.ListBox"), false));
+            mappings.RegisterTypeMapping("CheckBox", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.CheckBox"), false));
+            mappings.RegisterTypeMapping("OptionButton", () => new TypeMapping(compilationUnit.Generator.IdentifierName("System.Windows.Forms.RadioButton"), false));
 
             return mappings;
         }
