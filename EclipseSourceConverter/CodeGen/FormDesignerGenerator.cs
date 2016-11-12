@@ -115,6 +115,11 @@ namespace EclipseSourceConverter.CodeGen
             int? top = null;
             int? left = null;
 
+            int? clientHeight = null;
+            int? clientWidth = null;
+            int? clientLeft = null;
+            int? clientTop = null;
+
             foreach (var property in control.Properties) {
                 if (property.Name == "Height") {
                     height = Convert.ToInt32(property.Value);
@@ -124,6 +129,14 @@ namespace EclipseSourceConverter.CodeGen
                     top = Convert.ToInt32(property.Value);
                 } else if (property.Name == "Left") {
                     left = Convert.ToInt32(property.Value);
+                } else if (property.Name == "ClientHeight") {
+                    clientHeight = Convert.ToInt32(property.Value);
+                } else if (property.Name == "ClientWidth") {
+                    clientWidth = Convert.ToInt32(property.Value);
+                } else if (property.Name == "ClientTop") {
+                    clientTop = Convert.ToInt32(property.Value);
+                } else if (property.Name == "ClientLeft") {
+                    clientLeft = Convert.ToInt32(property.Value);
                 } else {
                     var mapping = mappings.GetMapping(control, property.Name);
                     if (mapping != null) {
@@ -140,6 +153,7 @@ namespace EclipseSourceConverter.CodeGen
                 }
             }
 
+            // Size
             if (height.HasValue && width.HasValue) {
                 width = UnitConverter.ConvertTwipsToXPixels(width.Value);
                 height = UnitConverter.ConvertTwipsToYPixels(height.Value);
@@ -149,6 +163,7 @@ namespace EclipseSourceConverter.CodeGen
                 propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), "Size"), result));
             }
 
+            // Location
             if (top.HasValue && left.HasValue) {
                 left = UnitConverter.ConvertTwipsToXPixels(left.Value);
                 top = UnitConverter.ConvertTwipsToYPixels(top.Value);
@@ -156,6 +171,16 @@ namespace EclipseSourceConverter.CodeGen
                 var result = compilationUnit.Generator.ObjectCreationExpression(compilationUnit.Generator.IdentifierName("System.Drawing.Point"), compilationUnit.Generator.LiteralExpression(left.Value), compilationUnit.Generator.LiteralExpression(top.Value));
 
                 propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), control.Name), "Location"), result));
+            }
+
+            // Client size
+            if (clientHeight.HasValue && clientWidth.HasValue && clientLeft.HasValue && clientTop.HasValue) {
+                clientWidth = UnitConverter.ConvertTwipsToXPixels(clientWidth.Value) + UnitConverter.ConvertTwipsToXPixels(clientLeft.Value);
+                clientHeight = UnitConverter.ConvertTwipsToYPixels(clientHeight.Value) + UnitConverter.ConvertTwipsToYPixels(clientTop.Value);
+
+                var result = compilationUnit.Generator.ObjectCreationExpression(compilationUnit.Generator.IdentifierName("System.Drawing.Size"), compilationUnit.Generator.LiteralExpression(clientWidth.Value), compilationUnit.Generator.LiteralExpression(clientHeight.Value));
+
+                propertyNodes.Add(compilationUnit.Generator.AssignmentStatement(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.ThisExpression(), "Size"), result));
             }
 
             // Add children
