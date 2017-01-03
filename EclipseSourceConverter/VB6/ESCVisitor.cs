@@ -118,25 +118,7 @@ namespace EclipseSourceConverter.VB6
 
                     // This is an array, get subscripts
                     var subscripts = subStatement.GetChild<VisualBasic6Parser.SubscriptsContext>(0);
-                    if (subscripts == null) {
-                        // No subscripts available
-                    } else {
-                        foreach (var subscript in EnumerateContexts<VisualBasic6Parser.SubscriptContext>(subscripts)) {
-                            var to = subscript.TO();
-
-                            if (to == null) {
-                                // Uses a single subscript
-                                var subscriptValue = subscript.GetChild<VisualBasic6Parser.ValueStmtContext>(0).GetText();
-                            } else {
-                                // Uses a subscript range
-                                // VB6 supports non-0 indexed arrays. .NET does not. To work around this, pad the start of the array with empty items, equal to the offset
-                                var subscriptValue1 = subscript.GetChild<VisualBasic6Parser.ValueStmtContext>(0).GetText();
-                                var subscriptValue2 = subscript.GetChild<VisualBasic6Parser.ValueStmtContext>(1).GetText();
-
-                                subscriptNode = compilationUnit.Generator.AddExpression(compilationUnit.Generator.GenerateNodeForLiteralOrName(subscriptValue1), compilationUnit.Generator.GenerateNodeForLiteralOrName(subscriptValue2));
-                            }
-                        }
-                    }
+                    subscriptNode = VisitSubscripts(subscripts).FirstOrDefault();
                 }
 
                 var (finalTypeNode, baseTypeNode) = WalkTypeNode(subStatement.GetChild<VisualBasic6Parser.AsTypeClauseContext>(0), isArray);
@@ -1166,11 +1148,33 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitSubscripts([NotNull] VisualBasic6Parser.SubscriptsContext context) {
-            return EnumerateChildElements(context);
+            if (context == null) {
+                // No subscripts available
+            } else {
+                foreach (var subscript in EnumerateContexts<VisualBasic6Parser.SubscriptContext>(context)) {
+                    foreach (var returnValue in VisitSubscript(subscript)) {
+                        yield return returnValue;
+                    }
+                }
+            }
         }
 
         public override IEnumerable<SyntaxNode> VisitSubscript([NotNull] VisualBasic6Parser.SubscriptContext context) {
-            return EnumerateChildElements(context);
+            var to = context.TO();
+
+            if (to == null) {
+                // Uses a single subscript
+                var subscriptValue = context.GetChild<VisualBasic6Parser.ValueStmtContext>(0).GetText();
+
+                yield return compilationUnit.Generator.GenerateNodeForLiteralOrName(subscriptValue);
+            } else {
+                // Uses a subscript range
+                // VB6 supports non-0 indexed arrays. .NET does not. To work around this, pad the start of the array with empty items, equal to the offset
+                var subscriptValue1 = context.GetChild<VisualBasic6Parser.ValueStmtContext>(0).GetText();
+                var subscriptValue2 = context.GetChild<VisualBasic6Parser.ValueStmtContext>(1).GetText();
+
+                yield return compilationUnit.Generator.AddExpression(compilationUnit.Generator.GenerateNodeForLiteralOrName(subscriptValue1), compilationUnit.Generator.GenerateNodeForLiteralOrName(subscriptValue2));
+            }
         }
 
         public override IEnumerable<SyntaxNode> VisitAmbiguousIdentifier([NotNull] VisualBasic6Parser.AmbiguousIdentifierContext context) {
