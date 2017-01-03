@@ -449,11 +449,9 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitBlock([NotNull] VisualBasic6Parser.BlockContext context) {
-            compilationUnit.BlockCount++;
             foreach (var childNode in EnumerateChildElements(context)) {
                 yield return childNode;
             }
-            compilationUnit.BlockCount--;
         }
 
         public override IEnumerable<SyntaxNode> VisitAppactivateStmt([NotNull] VisualBasic6Parser.AppactivateStmtContext context) {
@@ -568,7 +566,7 @@ namespace EclipseSourceConverter.VB6
             IEnumerable<SyntaxNode> blockStmtNodes;
             if (blockStmt == null) {
                 blockStmtNodes = Enumerable.Empty<SyntaxNode>();
-            }else {
+            } else {
                 blockStmtNodes = VisitBlock(blockStmt);
             }
 
@@ -723,7 +721,17 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitRedimStmt([NotNull] VisualBasic6Parser.RedimStmtContext context) {
-            return EnumerateChildElements(context);
+            var preserve = context.PRESERVE();
+
+            if (preserve != null) {
+
+            }
+
+            var redimSubStmt = VisitRedimSubStmt(context.GetChild<VisualBasic6Parser.RedimSubStmtContext>(0)).FirstOrDefault();
+
+            if (redimSubStmt != null) {
+                yield return compilationUnit.Generator.InvocationExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.IdentifierName("Array"), "Resize"), compilationUnit.Generator.Argument(RefKind.Ref, redimSubStmt));
+            }
         }
 
         public override IEnumerable<SyntaxNode> VisitRedimSubStmt([NotNull] VisualBasic6Parser.RedimSubStmtContext context) {
