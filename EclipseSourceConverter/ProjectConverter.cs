@@ -17,6 +17,10 @@ namespace EclipseSourceConverter
         public void ConvertProject(Project project, CodeGenLanguage language) {
             string targetDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "ESC");
 
+            if (!Directory.Exists(targetDirectory)) {
+                Directory.CreateDirectory(targetDirectory);
+            }
+
             var convertedItems = new List<string>();
             foreach (var item in project.Items) {
                 if (item.Type == ProjectItemType.Module) {
