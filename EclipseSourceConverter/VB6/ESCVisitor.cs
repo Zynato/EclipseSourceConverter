@@ -391,19 +391,12 @@ namespace EclipseSourceConverter.VB6
 
             SyntaxNode tempTypeNode;
 
-            if (!string.IsNullOrEmpty(finalTypeName)) {
-                tempTypeNode = compilationUnit.Generator.GenerateTypeNode(finalTypeName);
-
-                if (isArray) {
-                    return (compilationUnit.Generator.ArrayTypeExpression(tempTypeNode), tempTypeNode);
-                } else {
-                    return (tempTypeNode, tempTypeNode);
-                }
+            if (string.IsNullOrEmpty(finalTypeName)) {
+                finalTypeName = "object";
+                Debug.WriteLine("Invalid type node");
             }
 
-            Debug.WriteLine("Invalid type node");
-
-            tempTypeNode = compilationUnit.Generator.GenerateTypeNode("object");
+            tempTypeNode = compilationUnit.Generator.GenerateTypeNode(finalTypeName);
 
             if (isArray) {
                 return (compilationUnit.Generator.ArrayTypeExpression(tempTypeNode), tempTypeNode);
