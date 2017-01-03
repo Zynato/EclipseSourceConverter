@@ -379,24 +379,7 @@ namespace EclipseSourceConverter.VB6
                 return (finalType, finalType);
             }
 
-            var typeStatement = context.GetChild<VisualBasic6Parser.TypeContext>(0);
-            var baseTypeStatement = typeStatement.GetChild<VisualBasic6Parser.BaseTypeContext>(0);
-            var complexTypeStatement = typeStatement.GetChild<VisualBasic6Parser.ComplexTypeContext>(0);
-
-            string finalTypeName = "";
-
-            if (baseTypeStatement != null) {
-                finalTypeName = baseTypeStatement.GetText();
-            }
-
-            SyntaxNode tempTypeNode;
-
-            if (string.IsNullOrEmpty(finalTypeName)) {
-                finalTypeName = "object";
-                Debug.WriteLine("Invalid type node");
-            }
-
-            tempTypeNode = compilationUnit.Generator.GenerateTypeNode(finalTypeName);
+            var tempTypeNode = VisitAsTypeClause(context).First();
 
             if (isArray) {
                 return (compilationUnit.Generator.ArrayTypeExpression(tempTypeNode), tempTypeNode);
@@ -542,7 +525,48 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitFunctionStmt([NotNull] VisualBasic6Parser.FunctionStmtContext context) {
-            return EnumerateChildElements(context);
+            var accessibility = DetermineAccessibility(context.GetChild<VisualBasic6Parser.VisibilityContext>(0));
+
+            var nameContext = context.GetChild<VisualBasic6Parser.AmbiguousIdentifierContext>(0);
+            var name = nameContext.GetText();
+
+            var methodContext = new MethodContext()
+            {
+                Accessibility = accessibility,
+                Name = name
+            };
+
+            var blockContext = context.GetChild<VisualBasic6Parser.BlockContext>(0);
+            if (blockContext == null) {
+                // This is an empty method, skip it
+                yield break;
+            }
+
+            compilationUnit.BlockCount++;
+
+            var statements = EnumerateChildElements(blockContext);
+
+            IEnumerable<SyntaxNode> argList = null;
+
+            var argListContext = context.GetChild<VisualBasic6Parser.ArgListContext>(0);
+            if (argListContext != null) {
+                argList = VisitArgList(argListContext);
+            }
+
+            SyntaxNode returnTypeNode;
+
+            var asTypeContext = context.GetChild<VisualBasic6Parser.AsTypeClauseContext>(0);
+            if (asTypeContext != null) {
+                returnTypeNode = VisitAsTypeClause(asTypeContext).FirstOrDefault();
+            } else {
+                returnTypeNode = compilationUnit.Generator.GenerateTypeNode("object");
+            }
+
+            var methodDeclaration = compilationUnit.Generator.MethodDeclaration(name, parameters: argList, returnType: returnTypeNode, accessibility: accessibility, statements: statements);
+
+            compilationUnit.BlockCount--;
+
+            yield return methodDeclaration;
         }
 
         public override IEnumerable<SyntaxNode> VisitGetStmt([NotNull] VisualBasic6Parser.GetStmtContext context) {
@@ -1155,7 +1179,22 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitAsTypeClause([NotNull] VisualBasic6Parser.AsTypeClauseContext context) {
-            return EnumerateChildElements(context);
+            var typeStatement = context.GetChild<VisualBasic6Parser.TypeContext>(0);
+            var baseTypeStatement = typeStatement.GetChild<VisualBasic6Parser.BaseTypeContext>(0);
+            var complexTypeStatement = typeStatement.GetChild<VisualBasic6Parser.ComplexTypeContext>(0);
+
+            string finalTypeName = "";
+
+            if (baseTypeStatement != null) {
+                finalTypeName = baseTypeStatement.GetText();
+            }
+
+            if (string.IsNullOrEmpty(finalTypeName)) {
+                finalTypeName = "object";
+                Debug.WriteLine("Invalid type node");
+            }
+
+            yield return compilationUnit.Generator.GenerateTypeNode(finalTypeName);
         }
 
         public override IEnumerable<SyntaxNode> VisitBaseType([NotNull] VisualBasic6Parser.BaseTypeContext context) {
