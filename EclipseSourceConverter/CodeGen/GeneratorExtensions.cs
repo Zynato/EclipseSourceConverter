@@ -79,6 +79,8 @@ namespace EclipseSourceConverter.CodeGen
                     return generator.TypeExpression(SpecialType.System_Int16);
                 case "double":
                     return generator.TypeExpression(SpecialType.System_Double);
+                case "object":
+                    return generator.TypeExpression(SpecialType.System_Object);
                 default:
                     throw new NotImplementedException();
             }

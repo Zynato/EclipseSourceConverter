@@ -389,8 +389,10 @@ namespace EclipseSourceConverter.VB6
                 finalTypeName = baseTypeStatement.GetText();
             }
 
+            SyntaxNode tempTypeNode;
+
             if (!string.IsNullOrEmpty(finalTypeName)) {
-                var tempTypeNode = compilationUnit.Generator.GenerateTypeNode(finalTypeName);
+                tempTypeNode = compilationUnit.Generator.GenerateTypeNode(finalTypeName);
 
                 if (isArray) {
                     return (compilationUnit.Generator.ArrayTypeExpression(tempTypeNode), tempTypeNode);
@@ -401,7 +403,13 @@ namespace EclipseSourceConverter.VB6
 
             Debug.WriteLine("Invalid type node");
 
-            return (compilationUnit.Generator.GenerateTypeNode("boolean"), compilationUnit.Generator.GenerateTypeNode("boolean"));
+            tempTypeNode = compilationUnit.Generator.GenerateTypeNode("object");
+
+            if (isArray) {
+                return (compilationUnit.Generator.ArrayTypeExpression(tempTypeNode), tempTypeNode);
+            } else {
+                return (tempTypeNode, tempTypeNode);
+            }
         }
 
         public override IEnumerable<SyntaxNode> VisitModuleHeader([NotNull] VisualBasic6Parser.ModuleHeaderContext context) {
