@@ -239,6 +239,7 @@ namespace EclipseSourceConverter.VB6
                     case VisualBasic6Parser.LiteralContext literalCtx:
                     case VisualBasic6Parser.VsAmpContext ampCtx:
                     case VisualBasic6Parser.VsAssignContext assignCtx:
+                    case VisualBasic6Parser.ImplicitCallStmt_InStmtContext ctx:
                         return true;
                     case ITerminalNode terminalNode:
                         switch (terminalNode.Symbol.Text) {
@@ -328,15 +329,11 @@ namespace EclipseSourceConverter.VB6
 
         private SyntaxNode WalkBaseValueStatementNode(IParseTree child) {
             switch (child) {
+                case VisualBasic6Parser.ImplicitCallStmt_InStmtContext childCtx: {
+                        return VisitImplicitCallStmt_InStmt(childCtx).FirstOrDefault();
+                    }
                 case VisualBasic6Parser.VsICSContext childCtx: {
-                        var implicitCallCtx = childCtx.implicitCallStmt_InStmt();
-
-                        var result = VisitImplicitCallStmt_InStmt(implicitCallCtx).FirstOrDefault();
-                        if (result==null) {
-                            VisitImplicitCallStmt_InStmt(implicitCallCtx).FirstOrDefault();
-                        }
-
-                        return result;
+                        return VisitImplicitCallStmt_InStmt(childCtx.implicitCallStmt_InStmt()).FirstOrDefault();
                     }
                 case VisualBasic6Parser.VsLiteralContext childCtx: {
                         return compilationUnit.Generator.GenerateNodeForLiteralOrName(childCtx.GetText());
