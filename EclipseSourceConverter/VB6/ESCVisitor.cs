@@ -746,21 +746,17 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitRedimStmt([NotNull] VisualBasic6Parser.RedimStmtContext context) {
-
             var redimSubContext = context.GetChild<VisualBasic6Parser.RedimSubStmtContext>(0);
             var subscriptNode = VisitSubscripts(redimSubContext.GetChild<VisualBasic6Parser.SubscriptsContext>(0)).FirstOrDefault();
 
             var redimSubStmt = VisitRedimSubStmt(redimSubContext).First();
 
-            SyntaxNode preserveNode;
             var preserve = context.PRESERVE();
             if (preserve != null) {
-                preserveNode = compilationUnit.Generator.TrueLiteralExpression();
+                yield return compilationUnit.Generator.InvocationExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.IdentifierName("Array"), "Resize"), compilationUnit.Generator.Argument(RefKind.Ref, redimSubStmt), subscriptNode);
             } else {
-                preserveNode = compilationUnit.Generator.FalseLiteralExpression();
+                yield return compilationUnit.Generator.InvocationExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.IdentifierName("EclipseSupport"), "Resize"), compilationUnit.Generator.Argument(RefKind.Ref, redimSubStmt), subscriptNode, compilationUnit.Generator.Argument("preserve", RefKind.None, compilationUnit.Generator.FalseLiteralExpression()));
             }
-
-            yield return compilationUnit.Generator.InvocationExpression(compilationUnit.Generator.MemberAccessExpression(compilationUnit.Generator.IdentifierName("EclipseSupport"), "Resize"), compilationUnit.Generator.Argument(RefKind.Ref, redimSubStmt), subscriptNode, compilationUnit.Generator.Argument("preserve", RefKind.None, preserveNode));
         }
 
         public override IEnumerable<SyntaxNode> VisitRedimSubStmt([NotNull] VisualBasic6Parser.RedimSubStmtContext context) {
