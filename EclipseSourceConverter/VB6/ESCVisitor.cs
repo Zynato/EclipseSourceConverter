@@ -246,6 +246,8 @@ namespace EclipseSourceConverter.VB6
                             case "=":
                             case "+":
                             case "-":
+                            case "<":
+                            case ">":
                                 return true;
                             default:
                                 return false;
@@ -257,9 +259,10 @@ namespace EclipseSourceConverter.VB6
 
             Queue<IParseTree> childQueue = new Queue<IParseTree>(validChildren);
 
+            IParseTree child;
             SyntaxNode currentNode = null;
             if (childQueue.Count > 0) {
-                var child = childQueue.Dequeue();
+                child = childQueue.Dequeue();
 
                 currentNode = WalkBaseValueStatementNode(child);
             }
@@ -272,7 +275,7 @@ namespace EclipseSourceConverter.VB6
 #endif
 
             while (childQueue.Count > 0) {
-                var child = childQueue.Dequeue();
+                child = childQueue.Dequeue();
 
                 switch (child) {
                     case VisualBasic6Parser.VsAssignContext assignCtx: {
@@ -283,58 +286,36 @@ namespace EclipseSourceConverter.VB6
                         }
                         break;
                     case ITerminalNode childCtx: {
+                            if (childQueue.Count == 0) {
+                                return currentNode;
+                            }
+
+                            var rightChild = childQueue.Dequeue();
+                            var right = WalkBaseValueStatementNode(rightChild);
+
+                            if (right == null) {
+                                // TODO: Handle the case where right == null
+                                Debug.WriteLine("Invalid \"right\" node");
+                                var text = rightChild.GetText();
+                                right = compilationUnit.Generator.NullLiteralExpression();
+                            }
+
                             switch (childCtx.Symbol.Text) {
-                                case "=": {
-                                        if (childQueue.Count == 0) {
-                                            return currentNode;
-                                        }
-
-                                        var rightChild = childQueue.Dequeue();
-                                        var right = WalkBaseValueStatementNode(rightChild);
-
-                                        if (right == null) {
-                                            // TODO: Handle the case where right == null
-                                            Debug.WriteLine("Invalid \"right\" node");
-                                            right = compilationUnit.Generator.NullLiteralExpression();
-                                        }
-
-                                        currentNode = compilationUnit.Generator.ValueEqualsExpression(currentNode, right);
-                                    }
+                                case "=":
+                                    currentNode = compilationUnit.Generator.ValueEqualsExpression(currentNode, right);
                                     break;
                                 case "+":
-                                case "&": {
-                                        if (childQueue.Count == 0) {
-                                            return currentNode;
-                                        }
-
-                                        var rightChild = childQueue.Dequeue();
-                                        var right = WalkBaseValueStatementNode(rightChild);
-
-                                        if (right == null) {
-                                            // TODO: Handle the case where right == null
-                                            Debug.WriteLine("Invalid \"right\" node");
-                                            right = compilationUnit.Generator.NullLiteralExpression();
-                                        }
-
-                                        currentNode = compilationUnit.Generator.AddExpression(currentNode, right);
-                                    }
+                                case "&":
+                                    currentNode = compilationUnit.Generator.AddExpression(currentNode, right);
                                     break;
-                                case "-": {
-                                        if (childQueue.Count == 0) {
-                                            return currentNode;
-                                        }
-
-                                        var rightChild = childQueue.Dequeue();
-                                        var right = WalkBaseValueStatementNode(rightChild);
-
-                                        if (right == null) {
-                                            // TODO: Handle the case where right == null
-                                            Debug.WriteLine("Invalid \"right\" node");
-                                            right = compilationUnit.Generator.NullLiteralExpression();
-                                        }
-
-                                        currentNode = compilationUnit.Generator.SubtractExpression(currentNode, right);
-                                    }
+                                case "-":
+                                    currentNode = compilationUnit.Generator.SubtractExpression(currentNode, right);
+                                    break;
+                                case "<":
+                                    currentNode = compilationUnit.Generator.LessThanExpression(currentNode, right);
+                                    break;
+                                case ">":
+                                    currentNode = compilationUnit.Generator.GreaterThanExpression(currentNode, right);
                                     break;
                             }
                         }
@@ -350,7 +331,12 @@ namespace EclipseSourceConverter.VB6
                 case VisualBasic6Parser.VsICSContext childCtx: {
                         var implicitCallCtx = childCtx.implicitCallStmt_InStmt();
 
-                        return VisitImplicitCallStmt_InStmt(implicitCallCtx).FirstOrDefault();
+                        var result = VisitImplicitCallStmt_InStmt(implicitCallCtx).FirstOrDefault();
+                        if (result==null) {
+                            VisitImplicitCallStmt_InStmt(implicitCallCtx).FirstOrDefault();
+                        }
+
+                        return result;
                     }
                 case VisualBasic6Parser.VsLiteralContext childCtx: {
                         return compilationUnit.Generator.GenerateNodeForLiteralOrName(childCtx.GetText());
@@ -1073,28 +1059,21 @@ namespace EclipseSourceConverter.VB6
         public override IEnumerable<SyntaxNode> VisitImplicitCallStmt_InStmt([NotNull] VisualBasic6Parser.ImplicitCallStmt_InStmtContext context) {
             var membersCall = context.iCS_S_MembersCall();
             if (membersCall != null) {
-                var variableOrProcedureCall = membersCall.iCS_S_VariableOrProcedureCall();
-                if (variableOrProcedureCall != null) {
-                    var parentNode = WalkVariableOrProcedureCall(membersCall.iCS_S_VariableOrProcedureCall());
-
-                    var memberCallCollection = membersCall.iCS_S_MemberCall();
-
-                    foreach (var memberCall in memberCallCollection) {
-                        var memberCallVariableOrProcedureCall = memberCall.iCS_S_VariableOrProcedureCall();
-                        if (memberCallVariableOrProcedureCall != null) {
-                            var memberCallVariableOrProcedureCallNode = WalkVariableOrProcedureCall(memberCallVariableOrProcedureCall);
-
-                            parentNode = compilationUnit.Generator.MemberAccessExpression(parentNode, memberCallVariableOrProcedureCallNode);
-                        }
-                    }
-
-                    yield return parentNode;
+               foreach (var result in VisitICS_S_MembersCall(membersCall)) {
+                    yield return result;
                 }
             }
 
             var variableOrProcedureCall2 = context.iCS_S_VariableOrProcedureCall();
             if (variableOrProcedureCall2 != null) {
                 yield return WalkVariableOrProcedureCall(variableOrProcedureCall2);
+            }
+
+            var procedureOrArrayCallCtx = context.iCS_S_ProcedureOrArrayCall();
+            if (procedureOrArrayCallCtx != null) {
+                foreach (var result in VisitICS_S_ProcedureOrArrayCall(procedureOrArrayCallCtx)) {
+                    yield return result;
+                }
             }
         }
 
@@ -1103,11 +1082,55 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitICS_S_ProcedureOrArrayCall([NotNull] VisualBasic6Parser.ICS_S_ProcedureOrArrayCallContext context) {
-            return EnumerateChildElements(context);
+            var identifierCtx = context.GetChild<VisualBasic6Parser.AmbiguousIdentifierContext>(0);
+            string identifier = null;
+
+            if (identifierCtx != null) {
+                identifier = identifierCtx.GetText();
+            }
+
+            // TODO: Type hint support?
+
+            var argsCallCtx = context.GetChild<VisualBasic6Parser.ArgsCallContext>(0);
+            IEnumerable<SyntaxNode> argNodes = Enumerable.Empty<SyntaxNode>();
+            if (argsCallCtx != null) {
+                argNodes = VisitArgsCall(argsCallCtx);
+            }
+
+            yield return compilationUnit.Generator.InvocationExpression(compilationUnit.Generator.IdentifierName(identifier), argNodes);
         }
 
         public override IEnumerable<SyntaxNode> VisitICS_S_MembersCall([NotNull] VisualBasic6Parser.ICS_S_MembersCallContext context) {
-            return EnumerateChildElements(context);
+            SyntaxNode rootParent = null;
+
+            var variableOrProcedureCall = context.iCS_S_VariableOrProcedureCall();
+            if (variableOrProcedureCall != null) {
+                rootParent = WalkVariableOrProcedureCall(context.iCS_S_VariableOrProcedureCall());
+            }
+
+            var procedureOrArrayCallContext = context.iCS_S_ProcedureOrArrayCall();
+            if (procedureOrArrayCallContext != null) {
+                foreach (var result in VisitICS_S_ProcedureOrArrayCall(procedureOrArrayCallContext)) {
+                    rootParent = result;
+                }
+            }
+
+            if (rootParent == null) {
+                rootParent = compilationUnit.Generator.ThisExpression();
+            }
+
+            var memberCallCollection = context.iCS_S_MemberCall();
+
+            foreach (var memberCall in memberCallCollection) {
+                var memberCallVariableOrProcedureCall = memberCall.iCS_S_VariableOrProcedureCall();
+                if (memberCallVariableOrProcedureCall != null) {
+                    var memberCallVariableOrProcedureCallNode = WalkVariableOrProcedureCall(memberCallVariableOrProcedureCall);
+
+                    rootParent = compilationUnit.Generator.MemberAccessExpression(rootParent, memberCallVariableOrProcedureCallNode);
+                }
+            }
+
+            yield return rootParent;
         }
 
         public override IEnumerable<SyntaxNode> VisitICS_S_MemberCall([NotNull] VisualBasic6Parser.ICS_S_MemberCallContext context) {
