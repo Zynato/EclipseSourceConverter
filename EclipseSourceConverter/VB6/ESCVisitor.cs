@@ -1003,7 +1003,23 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitWhileWendStmt([NotNull] VisualBasic6Parser.WhileWendStmtContext context) {
-            return EnumerateChildElements(context);
+            var valueStmtContext = context.GetChild<VisualBasic6Parser.ValueStmtContext>(0);
+
+            var valueStmt = WalkValueStmt(valueStmtContext);
+
+            var blockContext = context.GetChild<VisualBasic6Parser.BlockContext>(0);
+            if (blockContext == null) {
+                // This is an empty block, skip it
+                yield break;
+            }
+
+            compilationUnit.BlockCount++;
+
+            var statements = EnumerateChildElements(blockContext);
+
+            compilationUnit.BlockCount--;
+
+            yield return compilationUnit.Generator.WhileStatement(valueStmt, statements);
         }
 
         public override IEnumerable<SyntaxNode> VisitWidthStmt([NotNull] VisualBasic6Parser.WidthStmtContext context) {
