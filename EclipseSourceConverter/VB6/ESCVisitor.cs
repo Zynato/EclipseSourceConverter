@@ -245,6 +245,7 @@ namespace EclipseSourceConverter.VB6
                             case "&":
                             case "=":
                             case "+":
+                            case "-":
                                 return true;
                             default:
                                 return false;
@@ -316,6 +317,23 @@ namespace EclipseSourceConverter.VB6
                                         }
 
                                         currentNode = compilationUnit.Generator.AddExpression(currentNode, right);
+                                    }
+                                    break;
+                                case "-": {
+                                        if (childQueue.Count == 0) {
+                                            return currentNode;
+                                        }
+
+                                        var rightChild = childQueue.Dequeue();
+                                        var right = WalkBaseValueStatementNode(rightChild);
+
+                                        if (right == null) {
+                                            // TODO: Handle the case where right == null
+                                            Debug.WriteLine("Invalid \"right\" node");
+                                            right = compilationUnit.Generator.NullLiteralExpression();
+                                        }
+
+                                        currentNode = compilationUnit.Generator.SubtractExpression(currentNode, right);
                                     }
                                     break;
                             }
