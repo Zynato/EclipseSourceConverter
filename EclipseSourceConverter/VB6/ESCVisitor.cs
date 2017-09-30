@@ -251,6 +251,7 @@ namespace EclipseSourceConverter.VB6
                             case ">":
                                 return true;
                             default:
+                                Announcer.Instance.Announce(AnnouncementType.Unimplemented, $"Terminal node: {terminalNode.Symbol.Text}");
                                 return false;
                         }
                 }

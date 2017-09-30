@@ -175,6 +175,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnnouncementType.cs" />
+    <Compile Include="Announcer.cs" />
     <Compile Include="CodeGen\CodeGenLanguageExtensions.cs" />
     <Compile Include="CodeGen\FormDesignerGenerator.cs" />
     <Compile Include="CodeGen\MethodContext.cs" />
