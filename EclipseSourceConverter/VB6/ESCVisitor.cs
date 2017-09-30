@@ -255,6 +255,7 @@ namespace EclipseSourceConverter.VB6
                             case ">=":
                             case "and":
                             case "or":
+                            case "<>":
                                 return true;
                             case " ":
                                 // Skip whitespace
@@ -345,6 +346,9 @@ namespace EclipseSourceConverter.VB6
                                     break;
                                 case ">=":
                                     currentNode = compilationUnit.Generator.GreaterThanOrEqualExpression(currentNode, right);
+                                    break;
+                                case "<>":
+                                    currentNode = compilationUnit.Generator.ValueNotEqualsExpression(currentNode, right);
                                     break;
                             }
                         }
