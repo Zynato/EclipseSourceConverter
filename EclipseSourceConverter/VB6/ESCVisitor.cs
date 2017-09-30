@@ -248,7 +248,9 @@ namespace EclipseSourceConverter.VB6
                             case "+":
                             case "-":
                             case "<":
+                            case "<=":
                             case ">":
+                            case ">=":
                             case "and":
                             case "or":
                                 return true;
@@ -327,8 +329,14 @@ namespace EclipseSourceConverter.VB6
                                 case "<":
                                     currentNode = compilationUnit.Generator.LessThanExpression(currentNode, right);
                                     break;
+                                case "<=":
+                                    currentNode = compilationUnit.Generator.LessThanOrEqualExpression(currentNode, right);
+                                    break;
                                 case ">":
                                     currentNode = compilationUnit.Generator.GreaterThanExpression(currentNode, right);
+                                    break;
+                                case ">=":
+                                    currentNode = compilationUnit.Generator.GreaterThanOrEqualExpression(currentNode, right);
                                     break;
                             }
                         }
