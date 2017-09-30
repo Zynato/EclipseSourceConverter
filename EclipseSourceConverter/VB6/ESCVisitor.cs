@@ -240,6 +240,7 @@ namespace EclipseSourceConverter.VB6
                     case VisualBasic6Parser.VsAmpContext ampCtx:
                     case VisualBasic6Parser.VsAssignContext assignCtx:
                     case VisualBasic6Parser.ImplicitCallStmt_InStmtContext ctx:
+                    case VisualBasic6Parser.ValueStmtContext valueCtx:
                         return true;
                     case ITerminalNode terminalNode:
                         switch (terminalNode.Symbol.Text.ToLower()) {
@@ -256,6 +257,7 @@ namespace EclipseSourceConverter.VB6
                             case "and":
                             case "or":
                             case "<>":
+                            case "new":
                                 return true;
                             case " ":
                                 // Skip whitespace
@@ -276,7 +278,24 @@ namespace EclipseSourceConverter.VB6
             if (childQueue.Count > 0) {
                 child = childQueue.Dequeue();
 
-                currentNode = WalkBaseValueStatementNode(child);
+                switch (child) {
+                    case TerminalNodeImpl ctx: {
+                            switch (ctx.GetText().ToLower()) {
+                                case "new": {
+                                        var nextChild = childQueue.Dequeue();
+
+                                        // TODO: Support parameters in constructor
+                                        currentNode = compilationUnit.Generator.ObjectCreationExpression(Visit(nextChild).First());
+                                    }
+                                    break;
+                            }
+                        }
+                        break;
+                    default: {
+                            currentNode = WalkBaseValueStatementNode(child);
+                        }
+                        break;
+                }
             }
 
 #if DEBUG
