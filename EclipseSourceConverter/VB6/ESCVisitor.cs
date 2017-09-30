@@ -247,6 +247,8 @@ namespace EclipseSourceConverter.VB6
                             case "=":
                             case "+":
                             case "-":
+                            case "*":
+                            case "/":
                             case "<":
                             case "<=":
                             case ">":
@@ -325,6 +327,12 @@ namespace EclipseSourceConverter.VB6
                                     break;
                                 case "-":
                                     currentNode = compilationUnit.Generator.SubtractExpression(currentNode, right);
+                                    break;
+                                case "*":
+                                    currentNode = compilationUnit.Generator.MultiplyExpression(currentNode, right);
+                                    break;
+                                case "/":
+                                    currentNode = compilationUnit.Generator.DivideExpression(currentNode, right);
                                     break;
                                 case "<":
                                     currentNode = compilationUnit.Generator.LessThanExpression(currentNode, right);
