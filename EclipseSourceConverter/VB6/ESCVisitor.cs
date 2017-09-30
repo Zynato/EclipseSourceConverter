@@ -242,13 +242,15 @@ namespace EclipseSourceConverter.VB6
                     case VisualBasic6Parser.ImplicitCallStmt_InStmtContext ctx:
                         return true;
                     case ITerminalNode terminalNode:
-                        switch (terminalNode.Symbol.Text) {
+                        switch (terminalNode.Symbol.Text.ToLower()) {
                             case "&":
                             case "=":
                             case "+":
                             case "-":
                             case "<":
                             case ">":
+                            case "and":
+                            case "or":
                                 return true;
                             case " ":
                                 // Skip whitespace
@@ -305,7 +307,13 @@ namespace EclipseSourceConverter.VB6
                                 right = compilationUnit.Generator.NullLiteralExpression();
                             }
 
-                            switch (childCtx.Symbol.Text) {
+                            switch (childCtx.Symbol.Text.ToLower()) {
+                                case "or": // Bitwise "or"
+                                    currentNode = compilationUnit.Generator.BitwiseOrExpression(currentNode, right);
+                                    break;
+                                case "and": // Bitwise "and"
+                                    currentNode = compilationUnit.Generator.BitwiseAndExpression(currentNode, right);
+                                    break;
                                 case "=":
                                     currentNode = compilationUnit.Generator.ValueEqualsExpression(currentNode, right);
                                     break;
