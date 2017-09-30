@@ -99,6 +99,8 @@ namespace EclipseSourceConverter
                     return SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
                 case CodeGenLanguage.VB:
                     return SyntaxGenerator.GetGenerator(workspace, LanguageNames.VisualBasic);
+                case CodeGenLanguage.FSharp:
+                    return SyntaxGenerator.GetGenerator(workspace, LanguageNames.FSharp);
                 default:
                     throw new NotSupportedException();
             }

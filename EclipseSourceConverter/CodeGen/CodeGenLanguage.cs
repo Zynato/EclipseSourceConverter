@@ -9,6 +9,7 @@ namespace EclipseSourceConverter.CodeGen
     enum CodeGenLanguage
     {
         CSharp,
-        VB
+        VB,
+        FSharp
     }
 }
