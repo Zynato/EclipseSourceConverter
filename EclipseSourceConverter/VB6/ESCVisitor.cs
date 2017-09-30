@@ -866,14 +866,17 @@ namespace EclipseSourceConverter.VB6
 
             var blockContext = context.GetChild<VisualBasic6Parser.BlockContext>(0);
 
-            IEnumerable<SyntaxNode> blockStatements;
+            List<SyntaxNode> blockStatements;
             if (blockContext != null) {
-                blockStatements = Visit(blockContext);
+                blockStatements = Visit(blockContext).ToList();
             } else {
                 // TODO: Skip this section entirely if the block is empty?
                 Announcer.Instance.Announce(AnnouncementType.Warning, "Empty block detected.");
                 blockStatements = new List<SyntaxNode>();
             }
+            // TODO: Only do this for languages where Exit Switch isn't implied (C#)
+            // Add a "break" at the end of every block
+            blockStatements.Add(compilationUnit.Generator.ExitSwitchStatement());
 
             if (!isDefault) {
                 Debug.Assert(caseExpression != null);
