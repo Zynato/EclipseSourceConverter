@@ -368,7 +368,7 @@ namespace EclipseSourceConverter.VB6
                         return VisitImplicitCallStmt_InStmt(childCtx.implicitCallStmt_InStmt()).FirstOrDefault();
                     }
                 case VisualBasic6Parser.VsLiteralContext childCtx: {
-                        return compilationUnit.Generator.GenerateNodeForLiteralOrName(childCtx.GetText());
+                        return Visit(childCtx).First();
                     }
                 case VisualBasic6Parser.LiteralContext childCtx: {
                         return compilationUnit.Generator.GenerateNodeForLiteralOrName(childCtx.GetText());
@@ -377,6 +377,7 @@ namespace EclipseSourceConverter.VB6
                         return WalkValueStmt(childCtx);
                     }
             }
+
 
             return null;
         }
@@ -811,11 +812,56 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitSelectCaseStmt([NotNull] VisualBasic6Parser.SelectCaseStmtContext context) {
-            return EnumerateChildElements(context);
+            var valueStmtContext = context.GetChild<VisualBasic6Parser.ValueStmtContext>(0);
+
+            var switchExpression = WalkValueStmt(valueStmtContext);
+
+            var sections = new List<SyntaxNode>();
+
+            foreach (var scContexts in context.EnumerateChildContexts().OfType<VisualBasic6Parser.SC_CaseContext>()) {
+                foreach (var scNode in Visit(scContexts)) {
+                    sections.Add(scNode);
+                }
+            }
+
+            yield return compilationUnit.Generator.SwitchStatement(switchExpression, sections);
         }
 
         public override IEnumerable<SyntaxNode> VisitSC_Case([NotNull] VisualBasic6Parser.SC_CaseContext context) {
-            return EnumerateChildElements(context);
+            var sc_CondContext = context.GetChild<VisualBasic6Parser.SC_CondContext>(0);
+
+            // Check if there is a default switch section
+            var caseCondElse = sc_CondContext.GetChild<TerminalNodeImpl>(0);
+
+            var isDefault = (caseCondElse != null && caseCondElse.GetText().ToLower() == "else");
+
+            // If it's not a default switch section, load the case expression
+            SyntaxNode caseExpression = null;
+            if (!isDefault) {
+                caseExpression = Visit(sc_CondContext).FirstOrDefault();
+                // TODO: Handle all switch condition contexts
+                if (caseExpression == null) {
+                    caseExpression = compilationUnit.Generator.FalseLiteralExpression();
+                }
+            }
+
+            var blockContext = context.GetChild<VisualBasic6Parser.BlockContext>(0);
+
+            IEnumerable<SyntaxNode> blockStatements;
+            if (blockContext != null) {
+                blockStatements = Visit(blockContext);
+            } else {
+                // TODO: Skip this section entirely if the block is empty?
+                Announcer.Instance.Announce(AnnouncementType.Warning, "Empty block detected.");
+                blockStatements = new List<SyntaxNode>();
+            }
+
+            if (!isDefault) {
+                Debug.Assert(caseExpression != null);
+                yield return compilationUnit.Generator.SwitchSection(caseExpression, blockStatements);
+            } else {
+                yield return compilationUnit.Generator.DefaultSwitchSection(blockStatements);
+            }
         }
 
         public override IEnumerable<SyntaxNode> VisitCaseCondElse([NotNull] VisualBasic6Parser.CaseCondElseContext context) {
@@ -982,7 +1028,7 @@ namespace EclipseSourceConverter.VB6
         }
 
         public override IEnumerable<SyntaxNode> VisitVsLiteral([NotNull] VisualBasic6Parser.VsLiteralContext context) {
-            return EnumerateChildElements(context);
+            yield return compilationUnit.Generator.GenerateNodeForLiteralOrName(context.GetText());
         }
 
         public override IEnumerable<SyntaxNode> VisitVsEqv([NotNull] VisualBasic6Parser.VsEqvContext context) {

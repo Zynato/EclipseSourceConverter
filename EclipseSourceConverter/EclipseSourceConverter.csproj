@@ -183,6 +183,7 @@
     <Compile Include="CodeGen\CodeGenLanguage.cs" />
     <Compile Include="CodeGen\CompilationUnit.cs" />
     <Compile Include="CodeGen\GeneratorExtensions.cs" />
+    <Compile Include="CodeGen\ParseTreeExtensions.cs" />
     <Compile Include="CodeGen\Rewriter.cs" />
     <Compile Include="ConvertedProjectItem.cs" />
     <Compile Include="FRXLoader.cs" />
